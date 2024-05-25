@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "624974883878",
+    "project_id": "cornfield-f722a",
+    "storage_bucket": "cornfield-f722a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:624974883878:android:7589486860f06f8a4e0ae7",
+        "android_client_info": {
+          "package_name": "com.example.cornfield"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCW0pDnZEMAyjBxqwDgcRE-mMpkJzGSt_s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
