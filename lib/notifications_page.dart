@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class NotificationsPage extends StatefulWidget {
+  const NotificationsPage({super.key});
+
   @override
   _NotificationsPageState createState() => _NotificationsPageState();
 }
@@ -11,7 +13,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   List<dynamic> notifications = [];
 
   Future<void> fetchNotifications() async {
-    // Our current web application doesn't have a web hosting
+    // Our current web application doesn't have a web hosting yet
     final response = await http.get(Uri.parse('https:localhost8080/notifications/'));
 
     if (response.statusCode == 200) {
@@ -22,18 +24,16 @@ class _NotificationsPageState extends State<NotificationsPage> {
       throw Exception('Failed to load notifications');
     }
   }
-
   @override
   void initState() {
     super.initState();
     fetchNotifications();
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Notifications'),
+        title: const Text('Notifications'),
       ),
       body: ListView.builder(
         itemCount: notifications.length,

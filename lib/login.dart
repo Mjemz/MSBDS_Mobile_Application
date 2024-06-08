@@ -1,7 +1,6 @@
 import 'package:cornfield/home.dart';
 import 'package:cornfield/signup.dart';
 import 'package:flutter/material.dart';
-import 'package:cornfield/splash.dart';
 import 'package:cornfield/components/my_textfield.dart';
 import 'package:cornfield/components/my_button.dart';
 class LoginPage extends StatelessWidget{
@@ -13,7 +12,7 @@ class LoginPage extends StatelessWidget{
    //We'll directly navigate to the HomePage for now
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => HomeScreen()),
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
     );
  }
 
@@ -26,7 +25,7 @@ class LoginPage extends StatelessWidget{
   Widget build(BuildContext context) 
   {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 253, 253, 253),
+      backgroundColor: const Color.fromARGB(255, 253, 253, 253),
       body: SafeArea(
       child: Center(  
         child: Column(
@@ -41,7 +40,7 @@ class LoginPage extends StatelessWidget{
 
             //welcome back
             const SizedBox(height: 25),
-            Text(
+            const Text(
               'Welcome Back !', style: TextStyle( color: Colors.black, 
               fontSize:20 ),
             ),
@@ -67,7 +66,7 @@ class LoginPage extends StatelessWidget{
 
         const SizedBox(height: 25),
         //forgot password\
-        Row(
+        const Row(
           mainAxisAlignment: MainAxisAlignment.end, // pushes the text to the right end side of the page
           children:
       [ 
@@ -101,7 +100,7 @@ class LoginPage extends StatelessWidget{
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children:[
-            Text('Don\'t have an account?',
+            const Text('Don\'t have an account?',
           style: TextStyle(color: Color.fromARGB(255, 2, 122, 6))
           ),
           const SizedBox(width: 4),
@@ -112,7 +111,7 @@ class LoginPage extends StatelessWidget{
                           MaterialPageRoute(builder: (context) => SignUpPage()), 
                         );
                       },
-                      child: Text(
+                      child: const Text(
                         'SignUp',
                         style: TextStyle(color: Colors.black, decoration: TextDecoration.underline),
                   ),

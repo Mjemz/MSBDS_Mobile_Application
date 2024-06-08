@@ -1,9 +1,7 @@
-import 'package:cornfield/home.dart';
-import 'package:cornfield/login.dart';
 import 'package:cornfield/signUp.dart';
 import 'package:flutter/material.dart';
 class Splash extends StatefulWidget{
-  const Splash({Key? key}) : super (key:key);
+  const Splash({super.key});
   @override
   State<Splash> createState() => _SplashState();
 }
@@ -16,8 +14,8 @@ class _SplashState extends State<Splash> {
     _navigationToLogin();
   } 
   _navigationToLogin()async{
-    await Future.delayed(Duration(seconds: 3), () {});
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> LoginPage()));
+    await Future.delayed(const Duration(seconds: 3), () {});
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> SignUpPage()));
   }
   // This widget is the root of your application.
   @override

@@ -3,13 +3,10 @@ import 'package:camera/camera.dart';
 class CameraScreen extends StatefulWidget {
   final CameraController? cameraController;
   final Function(XFile) onImageCaptured; // Callback to handle the captured image
-
   CameraScreen(this.cameraController, {required this.onImageCaptured});
-
   @override
   _CameraScreenState createState() => _CameraScreenState();
 }
-
 class _CameraScreenState extends State<CameraScreen> {
   XFile? _imageFile;
   @override
@@ -31,7 +28,7 @@ class _CameraScreenState extends State<CameraScreen> {
                     if (file != null) {
                       // Call the callback with the captured image
                       widget.onImageCaptured(file);
-                       // Pop the CameraScreen to return to the HomeScreen
+                      // Pop the CameraScreen to return to the HomeScreen
                       Navigator.pop(context);
                     }
                   } catch (e) {
