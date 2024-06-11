@@ -29,19 +29,21 @@ class SignUpPage extends StatelessWidget {
 
    try {
      // Create a new user with username (used as email) and password
+
      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
        email: emailController.text,
        password: passwordController.text,
      );
+     String documentId = userCredential.user!.uid;
 
      // Store additional user information in Firestore
-     await FirebaseFirestore.instance.collection('farmers').doc(userCredential.user!.uid).set({
-       //'email': emailController.text,
+     await FirebaseFirestore.instance.collection('farmers').doc(documentId).set({
        'username': usernameController.text,
        'contact': contactController.text,
        'farmSize': farmSizeController.text,
        'farmLocation': farmLocationController.text,
        'createdAt': DateTime.now(), // Optional: Timestamp for when the account was created
+       'severity': null,
      });
 
      // Navigate to another page or show a success message
@@ -54,9 +56,9 @@ class SignUpPage extends StatelessWidget {
        ScaffoldMessenger.of(context).showSnackBar(
          const SnackBar(content: Text('The password provided is too weak.')),
        );
-     } else if (e.code == 'email-already-in-use') {
+     } else if (e.code == 'username-already-in-use') {
        ScaffoldMessenger.of(context).showSnackBar(
-         const SnackBar(content: Text('The username is already taken.')),
+         const SnackBar(content: Text('username is already taken.')),
        );
      }
    } catch (e) {

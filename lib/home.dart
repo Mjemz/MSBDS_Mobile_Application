@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cornfield/viewimage.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -6,7 +7,9 @@ import 'package:cornfield/camerascreen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'capturedimage.dart';
 import 'notifications_page.dart';
-//import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:intl/intl.dart';
+
 //import 'package:marquee/marquee.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -48,18 +51,50 @@ class _HomeScreenState extends State<HomeScreen> {
   // Method for image picking in the phone gallery
   Future<void> pickImageFromGallery() async {
     final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile = await picker.pickImage(
+        source: ImageSource.gallery);
 
-    if (pickedFile!= null) {
-      final XFile pickedImageFile = XFile(pickedFile.path);
+    if (pickedFile != null) {
+      //final XFile pickedImageFile = XFile(pickedFile.path);
+      if (pickedFile != null) {
+        final File pickedImageFile = File(pickedFile.path);
+        try {
+          // Generate a unique name for the image file
+          String fileName = '${DateTime
+              .now()
+              .millisecondsSinceEpoch}.jpg'; // Assuming JPEG format
 
-      // Updates the state to add the picked image to the list of captured images
-      setState(() {
-        _capturedImages.add(CapturedImage(pickedImageFile, DateTime.now()));
-      });
+          // Create a reference to the file you want to upload
+          firebase_storage.Reference ref = firebase_storage.FirebaseStorage
+              .instance.ref('images/$fileName');
+
+          // Upload the file to the path
+          firebase_storage.UploadTask uploadTask = ref.putFile(pickedImageFile);
+
+          // Wait until the upload is complete
+          await uploadTask.whenComplete(() async {
+            // Once the upload is complete, get the download URL
+            String downloadUrl = await ref.getDownloadURL();
+
+            // Save the download URL to Firestore
+            FirebaseFirestore.instance.collection('capturedImages').doc(
+                fileName).set({
+              'url': downloadUrl,
+              'timestamp': DateTime.now(),
+            });
+
+            // Update the state to add the picked image to the list of captured images
+            setState(() {
+              _capturedImages.add(
+                  CapturedImage(XFile(downloadUrl), DateTime.now()));
+            });
+          });
+        } catch (e) {
+          print(e);
+        }
+      } // Updates the state to add the picked image to the list of captured images
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -96,17 +131,41 @@ class _HomeScreenState extends State<HomeScreen> {
                                       // Navigate to the camera screen
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (context) => CameraScreen(_cameraController, onImageCaptured: (file) {
-                                          setState(() {
-                                            // Add the captured image to the list
-                                            _capturedImages.add(CapturedImage(file, DateTime.now()));
-                                          });
-                                        })
-                                        ),
+                                        MaterialPageRoute(builder: (context) => CameraScreen(_cameraController, onImageCaptured: (file) async {
+                                          try {
+                                            // Generate a unique name for the image file
+                                            String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg'; // Assuming JPEG format
+
+                                            // Create a reference to the file you want to upload
+                                            firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance.ref('images/$fileName');
+
+                                            // Upload the file to the path
+                                            firebase_storage.UploadTask uploadTask = ref.putFile(File(file.path));
+
+                                            // Wait until the upload is complete
+                                            await uploadTask.whenComplete(() async {
+                                              // Once the upload is complete, get the download URL
+                                              String downloadUrl = await ref.getDownloadURL();
+
+                                              // Save the download URL to Firestore
+                                              FirebaseFirestore.instance.collection('capturedImages').doc(fileName).set({
+                                                'url': downloadUrl,
+                                                'timestamp': DateTime.now(),
+                                              });
+
+                                              // Update the state to add the captured image to the list of captured images
+                                              setState(() {
+                                                _capturedImages.add(CapturedImage(XFile(downloadUrl), DateTime.now()));
+                                              });
+                                            });
+                                          } catch (e) {
+                                             print(e);
+                                          }
+                                        })),
                                       );
                                     },
-                                    child: const Icon(Icons.camera_alt, size:100, color: Color(0xFF008000)),
-                                  ),
+                                    child: const Icon(Icons.camera_alt, size: 100, color: Color(0xFF008000)),
+                                ),
                                   const SizedBox(height: 8),
                                   const Text('Take a photo'),
                                 ],
@@ -137,34 +196,46 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
                 Center(
-                  child: _capturedImages.isEmpty
-                      ? const Text('No images captured yet.')
-                      : ListView.builder(
-                    itemCount: _capturedImages.length,
-                    itemBuilder: (context, index) {
-                      final capturedImage = _capturedImages[index];
-                      return ListTile(
-                        //using the hero widget to make images clickable
-                        leading: Hero(
-                          tag: 'imageHero$index',
-                          child: Image.file(File(capturedImage.file.path)),
-                        ),
-                        title: Text('Captured on: ${capturedImage.timestamp}'),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ImageDetailScreen(imagePath: capturedImage.file.path),
-                            ),
-                          );
-                        },
-                      );
-                    },
+                  child:
+                  // _capturedImages.isEmpty
+                  //     ? const Text('No images captured yet.')
+                  //     :
+                  StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('capturedImages').snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return Text('Something went wrong');
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Text("Loading");
+        }
+
+        return ListView(
+          children: snapshot.data!.docs.map((DocumentSnapshot document) {
+            Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+            DateTime now = DateTime.now();
+            String formattedDate = DateFormat('yyyy-MM-dd\nHH:mm:ss.SSS').format(now);
+            return ListTile(
+              leading: Image.network(data['url']),
+              title: Text('Captured on: $formattedDate'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ImageDetailScreen(imageUrl: data['url']),
                   ),
-                ),
-              ],
+                );
+              },
+            );
+          }).toList(),
+        );
+      },
             ),
-            ),
+          ),
+        ],
+      ),
+     ),
             SafeArea(
               top: false, // Prevents the safe area from applying to the custom header
               child: Column(
@@ -255,6 +326,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
+
 
 
 

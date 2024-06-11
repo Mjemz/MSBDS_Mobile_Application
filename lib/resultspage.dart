@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-
 class ResultDisplayScreen extends StatelessWidget {
   final Map<String, dynamic> analysisResults;
   const ResultDisplayScreen(this.analysisResults, {Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

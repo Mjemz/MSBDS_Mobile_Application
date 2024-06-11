@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
 
@@ -10,25 +9,37 @@ class NotificationsPage extends StatefulWidget {
 }
 
 class _NotificationsPageState extends State<NotificationsPage> {
-  List<dynamic> notifications = [];
+  List<Map<String, dynamic>> notifications = [];
 
-  Future<void> fetchNotifications() async {
-    // Our current web application doesn't have a web hosting yet
-    final response = await http.get(Uri.parse('https:localhost8080/notifications/'));
-
-    if (response.statusCode == 200) {
-      setState(() {
-        notifications = jsonDecode(response.body);
-      });
-    } else {
-      throw Exception('Failed to load notifications');
-    }
-  }
   @override
   void initState() {
     super.initState();
-    fetchNotifications();
+    Firebase.initializeApp().then((_) {
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        setState(() {
+          notifications.add({
+            'title': message.notification?.title ?? 'No Title',
+            'message': message.notification?.body ?? 'No Message',
+            'timestamp': DateTime.now().toString(),
+          });
+        });
+      });
+
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        setState(() {
+          notifications.add({
+            'title': message.notification?.title ?? 'No Title',
+            'message': message.notification?.body ?? 'No Message',
+            'timestamp': DateTime.now().toString(),
+          });
+        });
+      });
+
+      // Request permissions for iOS
+      FirebaseMessaging.instance.requestPermission();
+    });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,11 +52,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
           return ListTile(
             title: Text(notifications[index]['title']),
             subtitle: Text(notifications[index]['message']),
-            trailing: Text(notifications[index]['timestamp'].toString()),
+            trailing: Text(notifications[index]['timestamp']),
           );
         },
       ),
     );
   }
 }
-
